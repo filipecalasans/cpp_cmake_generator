@@ -12,18 +12,19 @@ build_dir=build
 template_dir=template
 
 cmake_version=3.0
+boost_version=1.59
 boost_path="~/Downloads/boost_1_68_0"
 openssl_path=""
 gtest_path="~/Workspace/googletest/googletest"
 gmock_path="~/Workspace/googletest/googlemock"
 
+use_boost=y
+use_openssl=n
+
 #Chose between one of the two Test Frameworks. 
 #If you choose Boost Test, you must set use_boost=y
 use_google_test=y
 use_boost_test=n
-
-use_boost=y
-use_openssl=n
 
 ####################################################################################
 # Create Directory Tree
@@ -74,7 +75,6 @@ openssl_lib
 fi
 
 cat << ROOT_CMAKE_DIRS  >> ${proj_root}/CMakeLists.txt
-
 add_subdirectory(${src_dir})
 add_subdirectory(${tests_dir})
 add_subdirectory(${app_dir})
@@ -86,12 +86,12 @@ ROOT_CMAKE_DIRS
 boost_lib () {
 
 cat << BOOSTLIB_GEN  >> ${proj_root}/CMakeLists.txt
-set(BOOST_ROOT ${boost_pth})
+set(BOOST_ROOT ${boost_path})
 # Locate Boost libraries: unit_test_framework, date_time and regex
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
-find_package(Boost 1.59 REQUIRED COMPONENTS unit_test_framework date_time regex)
+find_package(Boost ${boost_version} REQUIRED COMPONENTS unit_test_framework date_time regex)
 
 include_directories(Boost_INCLUDE_DIRS)
 
@@ -118,29 +118,27 @@ OPENSSL_GEN
 ####################################################################################
 tests_cmake () {
 echo "Generate tests CMake"
-cat << TEST_GEN  >> ${proj_root}/${test_dir}/CMakeLists.txt
+cat << TEST_GEN  >> ${proj_root}/${tests_dir}/CMakeLists.txt
 cmake_minimum_required(VERSION ${cmake_version})
 project(${project_name}_test C CXX)
 
 TEST_GEN
 
-if [ $use_google_test = y ] 
-then
+if [ $use_google_test = y ]; then
 google_test
 fi
 
-cat << TEST_GEN  >> ${proj_root}/${test_dir}/CMakeLists.txt
+cat << TEST_GEN  >> ${proj_root}/${tests_dir}/CMakeLists.txt
 
 add_subdirectory(${template_dir})
 
 TEST_GEN
 
 test_template
-
 }
 
 google_test () {
-cat << GOOGLETEST_GEN  >> ${proj_root}/${test_dir}/CMakeLists.txt
+cat << GOOGLETEST_GEN  >> ${proj_root}/${tests_dir}/CMakeLists.txt
 set(GMOCK_DIR ${gmock_path}
     CACHE PATH "The path to the GoogleMock test framework.")
 
@@ -150,7 +148,7 @@ set(GTEST_DIR ${gtest_path}
 set(BUILD_TESTING ON)
 enable_testing()
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+if ("\${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   # force this option to ON so that Google Test will use /MD instead of /MT
   # /MD is now the default for Visual Studio, so it should be our default, too
   option(gtest_force_shared_crt
@@ -160,7 +158,7 @@ elseif (APPLE)
   add_definitions(-DGTEST_USE_OWN_TR1_TUPLE=1)
 endif()
 
-add_subdirectory(\${GMOCK_DIR} ${CMAKE_BINARY_DIR}/gmock)
+add_subdirectory(\${GMOCK_DIR} \${CMAKE_BINARY_DIR}/gmock)
 
 include_directories(\${GMOCK_DIR}/gtest/include \${GMOCK_DIR}/include)
 include_directories(\${GTEST_DIR}/gtest/include \${GTEST_DIR}/include)
@@ -175,8 +173,7 @@ echo "Generate test template"
 
 link_libraries=projlib
 
-if [ use_google_test = y ]
-then
+if [ use_google_test = y ]; then
 cat << TEST_TEMPLATE_GEN  >> ${proj_root}/${test_dir}/${template_dir}/CMakeLists.txt
 
 add_executable(test_gtest_template template_gtest.cpp)
@@ -185,31 +182,72 @@ add_test(test_gtest_template test_gtest_template)
 TEST_TEMPLATE_GEN
 fi #end if [ use_google_test = y ]
 
-if [ use_boost = y ]
-then
+if [[ use_boost_test = y ]] && [[ use_boost = y ]]; then
 cat << TEST_TEMPLATE_GEN  >> ${proj_root}/${test_dir}/${template_dir}/CMakeLists.txt
 
 add_executable(test_boosttest_template template_boosttest_.cpp)
 target_link_libraries(test_boosttest__temaplte ${link_libraries} \${Boost_LIBRARIES})
 add_test(test_boosttest_template test_boosttest_template)
 TEST_TEMPLATE_GEN
-fi #end if [ use_google_test = n && use_boost = y ]
+fi #end [[ use_boost_test = y ]] && [[ use_boost = y ]]
 
-if [[ use_google_test = n ] && [ use_boost = n ]]
-then
+if [[ use_google_test = n ]] && [[ use_boost_test = n ]]; then
 cat << TEST_TEMPLATE_GEN  >> ${proj_root}/${test_dir}/${template_dir}/CMakeLists.txt
 
 add_executable(test_nolib_template test_nolib_template.cpp)
 target_link_libraries(test_nolib_template ${link_libraries})
 add_test(test_nolib_template test_nolib_template)
 TEST_TEMPLATE_GEN
-fi #end if [ use_google_test = n && use_boost = n ]
+fi #end if [[ use_google_test = n ]] && [[ use_boost_test = n ]]
 
 test_cpp_template
 }
 
 test_cpp_template () {
-  echo "Generate cpp tests templates"
+  
+
+if [ use_google_test = y ]; then
+cat << TEST_TEMPLATE_GEN  >> ${proj_root}/${test_dir}/${template_dir}/template_gtest.cpp
+#include <iostream>
+#include <string>
+#include "gtest/gtest.h"
+
+//your includes go here.
+#include "module_template/module.h"
+
+//Test template
+TEST(MODULE, test0) {
+   bool a = true;
+   EXPECT_EQ(a, true);
+}
+TEST_TEMPLATE_GEN
+fi #end if [ use_google_test = y ]
+
+if [[ use_boost_test = y ]] && [[ use_boost = y ]]; then
+cat << TEST_TEMPLATE_GEN  >> ${proj_root}/${test_dir}/${template_dir}/template_boosttest_.cpp
+#define BOOST_TEST_MAIN
+#include <boost/test/unit_test.hpp>
+
+#include "module_template/module.h"
+
+BOOST_AUTO_TEST_CASE(Test_BOOST_TEST_Template)
+{  
+   bool a = true;
+   BOOST_REQUIRE_EQUAL(true, a);
+}
+TEST_TEMPLATE_GEN
+fi #end [[ use_boost_test = y ]] && [[ use_boost = y ]]
+
+if [[ use_google_test = n ]] && [[ use_boost_test = n ]]; then
+cat << TEST_TEMPLATE_GEN  >> ${proj_root}/${test_dir}/${template_dir}/test_nolib_template.cpp
+#include <iostream>
+int main(int argc, char* argv[]) {
+  std::cout << "Test Unit Template" << std::endl;
+  return 0;
+}
+TEST_TEMPLATE_GEN
+fi #end if [[ use_google_test = n ]] && [[ use_boost_test = n ]]
+
 }
 
 ####################################################################################
@@ -241,6 +279,8 @@ main () {
   create_dir_tree
   root_project_cmake
   tests_cmake
+  src_cmake
+  #app_cmake
 }
 
 main
