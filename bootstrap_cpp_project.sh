@@ -13,22 +13,44 @@ template_dir=template
 
 cmake_version=3.0
 boost_version=1.59
-boost_path="~/Downloads/boost_1_68_0"
+boost_path="/home/filipe/Downloads/boost_1_68_0"
 openssl_path=""
-gtest_path="~/Workspace/googletest/googletest"
-gmock_path="~/Workspace/googletest/googlemock"
+gtest_path="/home/filipe/Documents/Workspace/googletest/googletest"
+gmock_path="/home/filipe/Documents/Workspace/googletest/googlemock"
 
 use_boost=y
-use_openssl=n
+use_openssl=y
 
 #Chose between one of the two Test Frameworks. 
 #If you choose Boost Test, you must set use_boost=y
 use_google_test=y
 use_boost_test=n
 
+external_libs=""
+
+verifications () {
+
+if [[ $use_boost_test = y ]] && [[ $use_boost = n ]]; then
+  echo "If you want to use BOOST TEST framework, you must select use_boost=y in this script."
+  exit
+fi
+
+}
+
+generate_external_libs() {
+if [ $use_boost = y ]; then 
+external_libs+="\${Boost_LIBRARIES} "
+fi
+
+if [ $use_openssl = y ]; then 
+external_libs+="\${OPENSSL_LIBRARIES} "
+fi
+}
 ####################################################################################
 # Create Directory Tree
 ####################################################################################
+link_libraries=module
+
 create_dir_tree () {
   if [ ! -d "$proj_root" ]; then
     mkdir ${proj_root}
@@ -40,9 +62,6 @@ create_dir_tree () {
     #Generate template directories
     mkdir ${proj_root}/${src_dir}/${template_dir}
     mkdir ${proj_root}/${tests_dir}/${template_dir}
-    mkdir ${proj_root}/${app_dir}/${template_dir}
-    mkdir ${proj_root}/${benchmark_dir}/${template_dir}
-    mkdir ${proj_root}/${build_dir}/${template_dir}
   fi
 }
 ####################################################################################
@@ -164,89 +183,98 @@ include_directories(\${GMOCK_DIR}/gtest/include \${GMOCK_DIR}/include)
 include_directories(\${GTEST_DIR}/gtest/include \${GTEST_DIR}/include)
 GOOGLETEST_GEN
 }
+
 ####################################################################################
 # tests/template Directory - CMakeLists.txt 
 ####################################################################################
 test_template() {
 
-echo "Generate test template"
+echo "Generate test template CMakeLists.txt"
 
-link_libraries=projlib
-
-if [ use_google_test = y ]; then
-cat << TEST_TEMPLATE_GEN  >> ${proj_root}/${test_dir}/${template_dir}/CMakeLists.txt
+if [ $use_google_test = y ]; then
+cat << TEST_TEMPLATE_GEN  >> ${proj_root}/${tests_dir}/${template_dir}/CMakeLists.txt
 
 add_executable(test_gtest_template template_gtest.cpp)
-target_link_libraries(test_gtest_temaplte ${link_libraries} gmock_main)
+target_link_libraries(test_gtest_template ${link_libraries} gmock_main)
 add_test(test_gtest_template test_gtest_template)
 TEST_TEMPLATE_GEN
 fi #end if [ use_google_test = y ]
 
-if [[ use_boost_test = y ]] && [[ use_boost = y ]]; then
-cat << TEST_TEMPLATE_GEN  >> ${proj_root}/${test_dir}/${template_dir}/CMakeLists.txt
+if [[ $use_boost_test = y ]] && [[ $use_boost = y ]]; then
+cat << TEST_TEMPLATE_GEN  >> ${proj_root}/${tests_dir}/${template_dir}/CMakeLists.txt
 
 add_executable(test_boosttest_template template_boosttest_.cpp)
-target_link_libraries(test_boosttest__temaplte ${link_libraries} \${Boost_LIBRARIES})
+target_link_libraries(test_boosttest_template ${link_libraries} \${Boost_LIBRARIES})
 add_test(test_boosttest_template test_boosttest_template)
 TEST_TEMPLATE_GEN
 fi #end [[ use_boost_test = y ]] && [[ use_boost = y ]]
 
-if [[ use_google_test = n ]] && [[ use_boost_test = n ]]; then
-cat << TEST_TEMPLATE_GEN  >> ${proj_root}/${test_dir}/${template_dir}/CMakeLists.txt
+#if [[ $use_google_test = n ]] && [[ $use_boost_test = n ]]; then
+cat << TEST_TEMPLATE_GEN  >> ${proj_root}/${tests_dir}/${template_dir}/CMakeLists.txt
 
-add_executable(test_nolib_template test_nolib_template.cpp)
-target_link_libraries(test_nolib_template ${link_libraries})
-add_test(test_nolib_template test_nolib_template)
+add_executable(test_noframework_template test_noframework_template.cpp)
+target_link_libraries(test_noframework_template ${link_libraries})
+add_test(test_noframework_template test_noframework_template)
 TEST_TEMPLATE_GEN
-fi #end if [[ use_google_test = n ]] && [[ use_boost_test = n ]]
+#fi #end if [[ use_google_test = n ]] && [[ use_boost_test = n ]]
 
 test_cpp_template
 }
 
+#Test CPP Templates
 test_cpp_template () {
-  
+echo "Generate test cpp templates"
 
-if [ use_google_test = y ]; then
-cat << TEST_TEMPLATE_GEN  >> ${proj_root}/${test_dir}/${template_dir}/template_gtest.cpp
+if [ $use_google_test = y ]; then
+echo " - Generate gtest cpp template"
+cat << TEST_TEMPLATE_CPP_GEN  >> ${proj_root}/${tests_dir}/${template_dir}/template_gtest.cpp
 #include <iostream>
 #include <string>
 #include "gtest/gtest.h"
 
 //your includes go here.
-#include "module_template/module.h"
+#include "template/module_template.h"
 
 //Test template
 TEST(MODULE, test0) {
    bool a = true;
-   EXPECT_EQ(a, true);
+   EXPECT_EQ(a, module_template());
 }
-TEST_TEMPLATE_GEN
+TEST_TEMPLATE_CPP_GEN
 fi #end if [ use_google_test = y ]
 
-if [[ use_boost_test = y ]] && [[ use_boost = y ]]; then
-cat << TEST_TEMPLATE_GEN  >> ${proj_root}/${test_dir}/${template_dir}/template_boosttest_.cpp
+if [[ $use_boost_test = y ]] && [[ $use_boost = y ]]; then
+echo " - Generate Boost test cpp template"
+cat << TEST_TEMPLATE_CPP_GEN  >> ${proj_root}/${tests_dir}/${template_dir}/template_boosttest.cpp
 #define BOOST_TEST_MAIN
 #include <boost/test/unit_test.hpp>
 
-#include "module_template/module.h"
+#include "template/module_template.h"
 
 BOOST_AUTO_TEST_CASE(Test_BOOST_TEST_Template)
 {  
    bool a = true;
-   BOOST_REQUIRE_EQUAL(true, a);
+   BOOST_REQUIRE_EQUAL(true, module_template());
 }
-TEST_TEMPLATE_GEN
+TEST_TEMPLATE_CPP_GEN
 fi #end [[ use_boost_test = y ]] && [[ use_boost = y ]]
 
-if [[ use_google_test = n ]] && [[ use_boost_test = n ]]; then
-cat << TEST_TEMPLATE_GEN  >> ${proj_root}/${test_dir}/${template_dir}/test_nolib_template.cpp
+#if [[ $use_google_test = n ]] && [[ $use_boost_test = n ]]; then
+echo " - Generate No-framework cpp template"
+cat << TEST_TEMPLATE_CPP_GEN  >> ${proj_root}/${tests_dir}/${template_dir}/test_framework_template.cpp
 #include <iostream>
-int main(int argc, char* argv[]) {
-  std::cout << "Test Unit Template" << std::endl;
+
+#include "template/module_template.h"
+
+int main(int argc, char* argv[]) 
+{
+  if(module_template()) {
+    std::cout << "Unit Test Template" << std::endl;
+  }
   return 0;
 }
-TEST_TEMPLATE_GEN
-fi #end if [[ use_google_test = n ]] && [[ use_boost_test = n ]]
+TEST_TEMPLATE_CPP_GEN
+#fi #end if [[ use_google_test = n ]] && [[ use_boost_test = n ]]
 
 }
 
@@ -254,44 +282,135 @@ fi #end if [[ use_google_test = n ]] && [[ use_boost_test = n ]]
 # SRC Directory - CMakeLists.txt 
 ####################################################################################
 src_cmake () {
-  echo "Generate src CMakeLists.txt"
+
+echo "Generate src CMakeLists.txt"
+cat << SRC_TEMPLATE_GEN  >> ${proj_root}/${src_dir}/CMakeLists.txt
+
+add_subdirectory(${template_dir})
+
+SRC_TEMPLATE_GEN
+
+src_template
+
 }
 
 src_template () {
-echo "Generate src template"
+echo "Generate src templates CMakeLists.txt"
+cat << TEST_TEMPLATE_GEN  >> ${proj_root}/${src_dir}/${template_dir}/CMakeLists.txt
+project(${link_libraries} C CXX)
+
+file(GLOB SOURCE_FILES "*.cpp")
+file(GLOB HEADER_FILES "*.h")
+
+add_library(${link_libraries} \${SOURCE_FILES} \${HEADER_FILES})
+target_link_libraries(${link_libraries} ${external_libs})
+
+TEST_TEMPLATE_GEN
+ 
+echo " - Generate src templates ( .cpp .h ) statically buildable."
+cat << SRC_TEMPLATE_HEADER_GEN  >> ${proj_root}/${src_dir}/${template_dir}/module_template.h
+#ifndef _MODULE_TEMPLATE_HH_
+#define _MODULE_TEMPALTE_HH__
+
+void module_template();
+
+#endif
+SRC_TEMPLATE_HEADER_GEN
+
+cat << SRC_TEMPLATE_CPP_GEN  >> ${proj_root}/${src_dir}/${template_dir}/module_template.cpp
+
+#include "module_template.h"
+
+bool module_template() {
+  return true;
+}
+SRC_TEMPLATE_CPP_GEN
+
 }
 
 ####################################################################################
 # app Directory - CMakeLists.txt 
 ####################################################################################
 app_cmake () {
-echo "Generate app CMake"
+echo "Generate app templatee CMakeLists.txt"
+cat << TEST_TEMPLATE_GEN  >> ${proj_root}/${app_dir}/CMakeLists.txt
+project(${link_libraries} C CXX)
+
+file(GLOB SOURCE_FILES "*.cpp")
+file(GLOB HEADER_FILES "*.h")
+
+add_executable(app \${SOURCE_FILES} \${HEADER_FILES})
+target_link_libraries(app ${link_libraries} ${external_libs})
+TEST_TEMPLATE_GEN
+
+app_template
+
 }
 
 app_template () {
-echo "Generate app template"
+echo "Generate app template source file"
+cat << APP_TEMPLATE_CPP_GEN  >> ${proj_root}/${app_dir}/app_template.cpp
+
+#include "template/module_template.h"
+
+int main(int argc, char *argv[]) 
+{
+  if(module_template()) {
+    std::cout << "Application ${project_name} running" << std::endl;
+  }
+  return 0;
+}
+APP_TEMPLATE_CPP_GEN
+}
+
+
+####################################################################################
+# app Directory - CMakeLists.txt 
+####################################################################################
+app_cmake () {
+echo "Generate Benchmark template CMakeLists.txt"
+cat << BENCHMARK_TEMPLATE_GEN  >> ${proj_root}/${benchmark_dir}/CMakeLists.txt
+project(${link_libraries}_benchmark C CXX)
+
+file(GLOB SOURCE_FILES "*.cpp")
+file(GLOB HEADER_FILES "*.h")
+
+add_executable(benchmark \${SOURCE_FILES} \${HEADER_FILES})
+target_link_libraries(benchmark ${link_libraries} ${external_libs})
+BENCHMARK_TEMPLATE_GEN
+
+benchmark_template
+
+}
+
+benchmark_template () {
+echo "Generate Benchmark template source file"
+cat << BENCHMARK_CPP_TEMPLATE_GEN  >> ${proj_root}/${app_dir}/app_template.cpp
+
+#include "template/module_template.h"
+
+int main(int argc, char *argv[]) 
+{
+  if(module_template()) {
+    std::cout << "Benchmark ${project_name} running" << std::endl;
+  }
+  return 0;
+}
+BENCHMARK_CPP_TEMPLATE_GEN
 }
 
 ####################################################################################
 # main
 ####################################################################################
 main () {
+  verifications
+  generate_external_libs
   create_dir_tree
   root_project_cmake
   tests_cmake
   src_cmake
-  #app_cmake
+  app_cmake
+  benchmark_cmake
 }
 
 main
-
-
-
-
-
-
-
-
-
-
-
