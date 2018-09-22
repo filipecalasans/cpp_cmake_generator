@@ -261,7 +261,7 @@ fi #end [[ use_boost_test = y ]] && [[ use_boost = y ]]
 
 #if [[ $use_google_test = n ]] && [[ $use_boost_test = n ]]; then
 echo " - Generate No-framework cpp template"
-cat << TEST_TEMPLATE_CPP_GEN  >> ${proj_root}/${tests_dir}/${template_dir}/test_framework_template.cpp
+cat << TEST_TEMPLATE_CPP_GEN  >> ${proj_root}/${tests_dir}/${template_dir}/test_noframework_template.cpp
 #include <iostream>
 
 #include "template/module_template.h"
@@ -312,7 +312,7 @@ cat << SRC_TEMPLATE_HEADER_GEN  >> ${proj_root}/${src_dir}/${template_dir}/modul
 #ifndef _MODULE_TEMPLATE_HH_
 #define _MODULE_TEMPALTE_HH__
 
-void module_template();
+bool module_template();
 
 #endif
 SRC_TEMPLATE_HEADER_GEN
@@ -350,6 +350,7 @@ app_template
 app_template () {
 echo "Generate app template source file"
 cat << APP_TEMPLATE_CPP_GEN  >> ${proj_root}/${app_dir}/app_template.cpp
+#include <iostream>
 
 #include "template/module_template.h"
 
@@ -365,9 +366,9 @@ APP_TEMPLATE_CPP_GEN
 
 
 ####################################################################################
-# app Directory - CMakeLists.txt 
+# benchmark Directory - CMakeLists.txt 
 ####################################################################################
-app_cmake () {
+benchmark_cmake () {
 echo "Generate Benchmark template CMakeLists.txt"
 cat << BENCHMARK_TEMPLATE_GEN  >> ${proj_root}/${benchmark_dir}/CMakeLists.txt
 project(${link_libraries}_benchmark C CXX)
@@ -385,7 +386,8 @@ benchmark_template
 
 benchmark_template () {
 echo "Generate Benchmark template source file"
-cat << BENCHMARK_CPP_TEMPLATE_GEN  >> ${proj_root}/${app_dir}/app_template.cpp
+cat << BENCHMARK_CPP_TEMPLATE_GEN  >> ${proj_root}/${benchmark_dir}/benchmark_template.cpp
+#include <iostream>
 
 #include "template/module_template.h"
 
