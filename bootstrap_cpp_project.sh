@@ -13,10 +13,12 @@ template_dir=template
 
 cmake_version=3.0
 boost_version=1.59
-boost_path="/home/filipe/Downloads/boost_1_68_0"
-openssl_path=""
-gtest_path="/home/filipe/Documents/Workspace/googletest/googletest"
-gmock_path="/home/filipe/Documents/Workspace/googletest/googlemock"
+
+#Look in the default system installation path.
+openssl_path="" 
+boost_path="~/Downloads/boost_1_68_0" 
+gtest_path="~/Documents/Workspace/googletest/googletest"
+gmock_path="~/Documents/Workspace/googletest/googlemock"
 
 use_boost=y
 use_openssl=y
@@ -24,7 +26,7 @@ use_openssl=y
 #Chose between one of the two Test Frameworks. 
 #If you choose Boost Test, you must set use_boost=y
 use_google_test=y
-use_boost_test=n
+use_boost_test=y
 
 external_libs=""
 
@@ -203,7 +205,7 @@ fi #end if [ use_google_test = y ]
 if [[ $use_boost_test = y ]] && [[ $use_boost = y ]]; then
 cat << TEST_TEMPLATE_GEN  >> ${proj_root}/${tests_dir}/${template_dir}/CMakeLists.txt
 
-add_executable(test_boosttest_template template_boosttest_.cpp)
+add_executable(test_boosttest_template template_boosttest.cpp)
 target_link_libraries(test_boosttest_template ${link_libraries} \${Boost_LIBRARIES})
 add_test(test_boosttest_template test_boosttest_template)
 TEST_TEMPLATE_GEN
