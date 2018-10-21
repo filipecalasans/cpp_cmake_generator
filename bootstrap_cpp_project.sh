@@ -15,15 +15,16 @@ cmake_version=3.0
 boost_version=1.59
 
 #Look in the default system installation path.
-openssl_path="" 
+openssl_path="<ADD-PATH>HERE>" 
 boost_path="~/Downloads/boost_1_68_0" 
 gtest_path="~/Documents/Workspace/googletest/googletest"
 gmock_path="~/Documents/Workspace/googletest/googlemock"
 
+use_threads=y
 use_boost=y
 use_openssl=y
 
-#Chose between one of the two Test Frameworks. 
+#Choose between one of the two Test Frameworks. 
 #If you choose Boost Test, you must set use_boost=y
 use_google_test=y
 use_boost_test=y
@@ -85,6 +86,11 @@ include_directories(src)
 
 ROOT_CMAKE
 
+if [ $use_threads = y ] 
+then 
+threads_lib
+fi
+
 if [ $use_boost = y ] 
 then 
 boost_lib
@@ -104,6 +110,19 @@ add_subdirectory(${benchmark_dir})
 ROOT_CMAKE_DIRS
 }
 
+threads_lib () {
+cat << THREADS_GEN  >> ${proj_root}/CMakeLists.txt
+  
+  # add target_link_libraries(<TARGET> Threads::Threads)
+  # set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+  # set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+
+  find_package(Threads REQUIRED)
+
+THREADS_GEN
+}
+
+#add boost components here.
 boost_lib () {
 
 cat << BOOSTLIB_GEN  >> ${proj_root}/CMakeLists.txt
@@ -132,6 +151,7 @@ set(OPENSSL_ROOT_DIR ${openssl_path})
 
 set(OPENSSL_USE_STATIC_LIBS TRUE)
 find_package(OpenSSL REQUIRED)
+
 OPENSSL_GEN
 }
 ####################################################################################
@@ -183,6 +203,7 @@ add_subdirectory(\${GMOCK_DIR} \${CMAKE_BINARY_DIR}/gmock)
 
 include_directories(\${GMOCK_DIR}/gtest/include \${GMOCK_DIR}/include)
 include_directories(\${GTEST_DIR}/gtest/include \${GTEST_DIR}/include)
+
 GOOGLETEST_GEN
 }
 
@@ -199,6 +220,7 @@ cat << TEST_TEMPLATE_GEN  >> ${proj_root}/${tests_dir}/${template_dir}/CMakeList
 add_executable(test_gtest_template template_gtest.cpp)
 target_link_libraries(test_gtest_template ${link_libraries} gmock_main)
 add_test(test_gtest_template test_gtest_template)
+
 TEST_TEMPLATE_GEN
 fi #end if [ use_google_test = y ]
 
@@ -208,6 +230,7 @@ cat << TEST_TEMPLATE_GEN  >> ${proj_root}/${tests_dir}/${template_dir}/CMakeList
 add_executable(test_boosttest_template template_boosttest.cpp)
 target_link_libraries(test_boosttest_template ${link_libraries} \${Boost_LIBRARIES})
 add_test(test_boosttest_template test_boosttest_template)
+
 TEST_TEMPLATE_GEN
 fi #end [[ use_boost_test = y ]] && [[ use_boost = y ]]
 
@@ -217,6 +240,7 @@ cat << TEST_TEMPLATE_GEN  >> ${proj_root}/${tests_dir}/${template_dir}/CMakeList
 add_executable(test_noframework_template test_noframework_template.cpp)
 target_link_libraries(test_noframework_template ${link_libraries})
 add_test(test_noframework_template test_noframework_template)
+
 TEST_TEMPLATE_GEN
 #fi #end if [[ use_google_test = n ]] && [[ use_boost_test = n ]]
 
@@ -242,6 +266,7 @@ TEST(MODULE, test0) {
    bool a = true;
    EXPECT_EQ(a, module_template());
 }
+
 TEST_TEMPLATE_CPP_GEN
 fi #end if [ use_google_test = y ]
 
@@ -258,6 +283,7 @@ BOOST_AUTO_TEST_CASE(Test_BOOST_TEST_Template)
    bool a = true;
    BOOST_REQUIRE_EQUAL(true, module_template());
 }
+
 TEST_TEMPLATE_CPP_GEN
 fi #end [[ use_boost_test = y ]] && [[ use_boost = y ]]
 
@@ -275,6 +301,7 @@ int main(int argc, char* argv[])
   }
   return 0;
 }
+
 TEST_TEMPLATE_CPP_GEN
 #fi #end if [[ use_google_test = n ]] && [[ use_boost_test = n ]]
 
@@ -363,6 +390,7 @@ int main(int argc, char *argv[])
   }
   return 0;
 }
+
 APP_TEMPLATE_CPP_GEN
 }
 
