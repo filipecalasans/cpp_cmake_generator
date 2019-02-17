@@ -63,7 +63,7 @@ Directory tree generated
 |   |   └── template_gtest.cpp
 ```
 
-To build the template poject in the folder build execute the following commands:
+To build the template poject, execute the following commands in the folder build:
 
 ```console
 $> cd my_project/build && cmake ../ && make
