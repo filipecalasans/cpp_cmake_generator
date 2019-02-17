@@ -36,7 +36,7 @@ Execute the script passing the project name as argument:
 $> ./bootstrap_cpp_project.sh my_project
 ```
 
-Directory tree generated
+This is the directory tree generated
 ```  
   .my_project
 ├── app
