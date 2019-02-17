@@ -10,7 +10,7 @@ This script is able to generate projects that links to googletest, boost, boost 
 
 ## Example`
 
-Inside the script file bootstrap_cpp_project.sh you can configure the parameters for your project:
+Inside the script file *bootstrap_cpp_project.sh* you can configure the following parameters of your project:
 
 ```bash
 cmake_version=3.0
