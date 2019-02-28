@@ -4,9 +4,9 @@ A CMake project directory tree generator for c++
 
 ## Description
 
-This script generates a project directory tree for C/C++ language ready to go. It provides boilerplates that demonstrate how to link your different modules/application/unit test modules together and with external dependencies.
+This script generates a C/C++ project directory tree ready to go. It provides boilerplates that demonstrate how to link your different modules/application/unit test modules together and with external dependencies.
 
-This script is able to generate projects that links to googletest, boost, boost unit test and openssl. This project provides those who aren't very familiar with the CMake syntax with a project directory tree redy to go.
+This script can also generate projects that links to googletest, boost, boost unit test and openssl. It provides those who aren't very familiar with CMake syntax with a project directory tree redy to go.
 
 ## Example`
 
