@@ -33,7 +33,7 @@ use_boost_test=y   #y/n
 Execute the script passing the project name as argument:
 
 ```console
-$> ./bootstrap_cpp_project.sh my_project
+$ ./bootstrap_cpp_project.sh my_project
 ```
 
 This is the directory tree generated
@@ -66,5 +66,5 @@ This is the directory tree generated
 To build the template poject, execute the following commands in the folder build:
 
 ```console
-$> cd my_project/build && cmake ../ && make
+$ cd my_project/build && cmake ../ && make
 ```
